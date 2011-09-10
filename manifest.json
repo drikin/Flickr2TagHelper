@@ -1,0 +1,20 @@
+{
+  "name": "Flickr2Tag",
+  "version": "0.1",
+  "description": "Flickr2Tag generates HTML tag from Flickr photo.",
+  "icons": {
+      "48": "flickr2tag48.png",
+      "128": "flickr2tag128.png"
+  },
+  "browser_action": {
+    "default_icon": "flickr2tag48.png",
+    "default_title": "Flickr2Tag"
+  },
+  "background_page": "background.html",
+  "permissions": [
+    "tabs",
+    "notifications"
+  ],
+  "homepage_url": "http://flickr2tag.drikin.com/",
+  "options_page": "settings.html"
+}

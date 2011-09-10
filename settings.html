@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+<title>Flickr2Tag</title>
+
+<style>/* {{{ */
+html, body{
+  border: 0;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  font-size: 12px;
+  font-family: sans-serif;
+  background: #fff;
+  color: #141414;
+}
+a, a:visited {
+  color: #666;
+  text-decoration: none;
+}
+a:hover {
+  background: #fff;
+  color: #0571A0;
+}
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  margin: 0;
+  padding: 0;
+}
+#wrapper {
+  margin: 0 auto;
+  padding: 20px 0;
+  width: 600px;
+}
+#wrapper h1 {
+  font-weight: 100;
+  font-size: 50px;
+  color: #666;
+}
+#wrapper h2 {
+  font-weight: 200;
+  font-size: 20px;
+}
+#settings li {
+  margin: 0 0 10px 0;
+}
+#settings .description {
+  font-size: 10px;
+  color: #666;
+  margin-left: 20px;
+}
+/* }}} */</style>
+
+<script type="text/javascript">// {{{
+(function() {
+  var background = chrome.extension.getBackgroundPage();
+  var settings = background.settings;
+  // TODO non checkbox for item.
+  window.init = function() {
+    // Setup for input
+    var items = document.getElementsByTagName("input");
+    for(var i=0; i<items.length; i++) {
+      var item = items[i];
+      var key = item.getAttribute("id");
+      if (item.type === 'checkbox') {
+        item.checked = settings.get(key);
+        item.addEventListener("click", function(event) {
+          var key = event.target.id;
+          var item = event.target;
+          settings.set(key, item.checked);
+          });
+      } else if (item.type = 'text') {
+        item.value = settings.get(key);
+        item.addEventListener("change", function(event) {
+          var key = event.target.id;
+          var value = event.target.value;
+          settings.set(key, value);
+        });
+      }
+    }
+    // Setup for select
+    var key = "photoSize";
+    var select = document.getElementById(key);
+    select.value = settings.get(key);
+    select.addEventListener("change", function(event) {
+        var key = event.target.id;
+        var value = event.target.value;
+        settings.set(key, value);
+    });
+  }
+})();
+// }}}</script>
+</head>
+
+<body onload="init();">
+<div id="wrapper">
+  <h1>Flickr2Tag</h1>
+  <h2>Settings</h2>
+  <ul id="settings">
+    <!--
+    <li>
+      <input type="checkbox" id="markCurrentTweetsAsTransparent" />
+      <label for="markCurrentTweetsAsTransparent">Include Description into HTML Tag</label>
+    </li>
+    -->
+    <li>
+      Size of Photo:&nbsp;
+      <select id="photoSize">
+        <option value="s">Square</option>
+        <option value="t">Thumbnail</option>
+        <option value="m">Small</option> -->
+        <option value="-">Medium 500</option>
+        <option value="z">Medium 640</option>
+        <option value="l">Large</option>
+        <!-- <option value="en">Original</option> -->
+      </select>
+      </li>
+  </ul>
+</div>
+</body>
+</html>
+<!-- vim:set ts=2 sw=2 expandtab foldmethod=marker: -->

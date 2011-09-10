@@ -1,0 +1,128 @@
+<html>
+    <script>
+        // Settings
+        function Settings(defaults) {
+            this.defaults = defaults;
+            this.storage = chrome.extension.getBackgroundPage().localStorage;
+            this.listenerTabs= {};
+
+            var self = this;
+            chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+                var action = request["action"] || request["method"];
+                var key = request["key"];
+                var value = request["value"];
+                if(action === "initSettings") {
+                    sendResponse(self.all());
+                    self.listenerTabs[sender.tab.id] = sender.tab;
+                } else if(action === "getSetting" && key) {
+                    sendResponse(self.get(key));
+                } else if(action === "setSetting" && key && value) {
+                   self.set(key, value);
+                }
+            });
+        }
+        Settings.prototype = {
+            get: function(key) {
+                var value = this.storage.getItem(key);
+                if(value === null && this.defaults.hasOwnProperty(key)) {
+                    value = this.defaults[key];
+                }
+                try {
+                    return JSON.parse(value);
+                } catch(e) {
+                    return value;
+                }
+            },
+            all: function() {
+                var settings = {};
+                for(var key in this.defaults) {
+                    if(this.defaults.hasOwnProperty(key)) {
+                        settings[key] = this.get(key);
+                    }
+                }
+                return settings;
+            },
+            set: function(key, value) {
+                this.storage.setItem(key, JSON.stringify(value));
+                this.notify(key, value);
+            },
+            remove: function(key) {
+                this.storage.removeItem(key);
+            },
+            notify: function(key, value) {
+                var message = {action: "updateSetting", key: key, value: value};
+                chrome.extension.sendRequest(message);
+                for(var id in this.listenerTabs) {
+                    var tab = this.listenerTabs[id];
+                    try {
+                        chrome.tabs.sendRequest(tab.id, message);
+                    } catch(e) {
+                        delete this.listenerTabs[id];
+                    }
+                }
+            }
+        };
+
+        // Default Settings Object
+        window.settings = new Settings({
+            photoSize: "z"
+        });
+
+
+
+        function scrollToTop(tid) {
+            // request to scroll
+            var message = {action: "scrollToTop"};
+            chrome.tabs.sendRequest(tid, message);
+        }
+
+        // Click from Browser Action Icon
+        chrome.browserAction.onClicked.addListener(function(tab) {
+            chrome.tabs.getSelected(null, function (tab) {
+                if (tab.url.match(/http(s)?:\/\/www.flickr.com/)) {
+                    var target_url = "http://flickr2tag.drikin.com/api/"
+                    var src = tab.url;
+                    var re_flickr_user = /http:\/\/www.flickr.com\/photos\/.+\//;
+                    var re_flickr_group = /http:\/\/www.flickr.com\/groups\/.+\//;
+
+                    var size_url = "&size=" + settings.get("photoSize");
+
+                    if (src.match(re_flickr_user)) {
+                        chrome.tabs.create({url: target_url + "redirectuser?src=" + src + size_url, selected: true});
+                    } else if (src.match(re_flickr_group)){
+                        chrome.tabs.create({url: target_url + "redirectgroup?src=" + src + size_url, selected: true});
+                    } else {
+                        chrome.tabs.create({url: "http://flickr2tag.drikin.com/", selected: true});
+                    }
+                } else {
+                    chrome.tabs.getAllInWindow(null, function(tabs) {
+                        var isOpened = false;
+                        var target_url = "http://flickr2tag.drikin.com/";
+                        for (var i = 0, n = tabs.length; i < n; i++) {
+                            var tab = tabs[i];
+                            if (tab.url.match(/http(s)?:\/\/flickr2tag.drikin.com/)) {
+                                chrome.tabs.update(tab.id, {selected: true});
+                                scrollToTop(tab.id);
+                                isOpened = true;
+                                break;
+                            }
+                        }
+                        if (!isOpened) {
+                            chrome.tabs.create({url: target_url, selected: true});
+                        }
+                    });
+                }
+            });
+        });
+
+        // Request from Content Script
+        chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+            if (request.type === "updateBadge") {
+                chrome.browserAction.setBadgeText({text:request.text})
+                sendResponse();
+            }
+        });
+
+    </script>
+</html>
+<!-- vim:set ts=4 sw=4 expandtab: -->
