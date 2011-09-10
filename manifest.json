@@ -1,6 +1,6 @@
 {
   "name": "Flickr2Tag",
-  "version": "0.2",
+  "version": "0.3",
   "description": "Flickr2Tag generates HTML tag from Flickr photo.",
   "icons": {
       "48": "flickr2tag48.png",

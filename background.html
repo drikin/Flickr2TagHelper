@@ -82,12 +82,16 @@
                 if (tab.url.match(/http(s)?:\/\/www.flickr.com/)) {
                     var target_url = "http://flickr2tag.drikin.com/api/"
                     var src = tab.url;
+                    var re_flickr_photoset = /http:\/\/www.flickr.com\/photos\/(.+)\/sets\/(.+)\//;
                     var re_flickr_user = /http:\/\/www.flickr.com\/photos\/.+\//;
                     var re_flickr_group = /http:\/\/www.flickr.com\/groups\/.+\//;
 
                     var size_url = "&size=" + settings.get("photoSize");
 
-                    if (src.match(re_flickr_user)) {
+                    if (src.match(re_flickr_photoset)) {
+                        var photoset_url = "&photoset_id=" + RegExp.$2;
+                        chrome.tabs.create({url: target_url + "redirectuser?src=" + src + size_url + photoset_url, selected: true});
+                    } else if (src.match(re_flickr_user)) {
                         chrome.tabs.create({url: target_url + "redirectuser?src=" + src + size_url, selected: true});
                     } else if (src.match(re_flickr_group)){
                         chrome.tabs.create({url: target_url + "redirectgroup?src=" + src + size_url, selected: true});
